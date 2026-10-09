@@ -1,0 +1,21 @@
+# Proxy reverso com HTTPS automático (Let's Encrypt) na frente do ProjetoFaculdade.exe (porta 9000).
+# Troque o host e a origem do front pelos seus.
+#
+# ATENÇÃO: o bloco de CORS abaixo só deve ser usado se a API NÃO enviar
+# cabeçalhos CORS por conta própria (teste primeiro; cabeçalho duplicado quebra).
+
+autocusto-api-SEUNOME.brazilsouth.cloudapp.azure.com {
+
+	@preflight method OPTIONS
+	handle @preflight {
+		header Access-Control-Allow-Origin "https://SEU-SITE.azurestaticapps.net"
+		header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		respond "" 204
+	}
+
+	handle {
+		header Access-Control-Allow-Origin "https://SEU-SITE.azurestaticapps.net"
+		reverse_proxy localhost:9000
+	}
+}

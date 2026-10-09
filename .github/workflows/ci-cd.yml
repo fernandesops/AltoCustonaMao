@@ -1,0 +1,37 @@
+name: CI/CD AutoCusto
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci || npm install
+      - run: npm test
+
+  deploy:
+    # só publica quando os testes passam e o push é na main
+    needs: testes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # troca o localhost pela URL pública da API (variável do repositório)
+      - name: Configurar URL da API
+        run: sed -i 's#http://localhost:9000#${{ vars.API_URL }}#' web/js/config.js
+      - name: Publicar no Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: web
+          skip_app_build: true
